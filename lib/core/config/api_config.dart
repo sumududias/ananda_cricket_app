@@ -1,11 +1,12 @@
 import 'package:flutter/foundation.dart';
+import 'package:http/http.dart' as http;
 
 class ApiConfig {
   // Set this to true when deploying to production
-  static const bool useProduction = false;
+  static const bool useProduction = true;
 
-  // Production URL (update this with your Railway.app URL)
-  static const String productionUrl = 'https://your-app.railway.app';
+  // Production URL (PythonAnywhere URL)
+  static const String productionUrl = 'https://sumududias.pythonanywhere.com';
 
   // Local development URLs
   static const String currentIp = '192.168.1.28';
@@ -27,6 +28,20 @@ class ApiConfig {
     if (path == null) return '';
     if (path.startsWith('http')) return path;
     return '$mediaUrl$path';
+  }
+
+  // API test method
+  static Future<bool> testConnection() async {
+    try {
+      final response = await http.get(
+        Uri.parse(matchesEndpoint),
+        headers: headers,
+      );
+      return response.statusCode == 200;
+    } catch (e) {
+      print('API Connection Error: $e');
+      return false;
+    }
   }
 
   // API Endpoints

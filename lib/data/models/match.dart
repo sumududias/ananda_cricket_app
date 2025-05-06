@@ -5,6 +5,7 @@ class Match {
   final DateTime matchDate;
   final String? venue;
   final String? matchType;
+  final String? matchFormat;
   final int? tournament;
   final String? tournamentName;
   final String? tossWinner;
@@ -12,6 +13,10 @@ class Match {
   final String? result;
   final String? anandaScore;
   final String? opponentScore;
+  final int anandaExtrasByes;
+  final int anandaExtrasLegByes;
+  final int opponentExtrasByes;
+  final int opponentExtrasLegByes;
   final String? summary;
   final int? manOfMatch;
   final String? manOfMatchName;
@@ -25,6 +30,7 @@ class Match {
     required this.matchDate,
     this.venue,
     this.matchType,
+    this.matchFormat,
     this.tournament,
     this.tournamentName,
     this.tossWinner,
@@ -32,6 +38,10 @@ class Match {
     this.result,
     this.anandaScore,
     this.opponentScore,
+    this.anandaExtrasByes = 0,
+    this.anandaExtrasLegByes = 0,
+    this.opponentExtrasByes = 0,
+    this.opponentExtrasLegByes = 0,
     this.summary,
     this.manOfMatch,
     this.manOfMatchName,
@@ -49,6 +59,7 @@ class Match {
           : DateTime.now(),
       venue: json['venue'],
       matchType: json['match_type'],
+      matchFormat: json['match_format'],
       tournament: json['tournament'],
       tournamentName: json['tournament_name'],
       tossWinner: json['toss_winner'],
@@ -56,6 +67,10 @@ class Match {
       result: json['result'],
       anandaScore: json['ananda_score'],
       opponentScore: json['opponent_score'],
+      anandaExtrasByes: json['ananda_extras_byes'] ?? 0,
+      anandaExtrasLegByes: json['ananda_extras_leg_byes'] ?? 0,
+      opponentExtrasByes: json['opponent_extras_byes'] ?? 0,
+      opponentExtrasLegByes: json['opponent_extras_leg_byes'] ?? 0,
       summary: json['summary'],
       manOfMatch: json['man_of_match'],
       manOfMatchName: json['man_of_match_name'],
@@ -74,6 +89,7 @@ class Match {
         'match_date': matchDate.toIso8601String(),
         'venue': venue,
         'match_type': matchType,
+        'match_format': matchFormat,
         'tournament': tournament,
         'tournament_name': tournamentName,
         'toss_winner': tossWinner,
@@ -81,12 +97,38 @@ class Match {
         'result': result,
         'ananda_score': anandaScore,
         'opponent_score': opponentScore,
+        'ananda_extras_byes': anandaExtrasByes,
+        'ananda_extras_leg_byes': anandaExtrasLegByes,
+        'opponent_extras_byes': opponentExtrasByes,
+        'opponent_extras_leg_byes': opponentExtrasLegByes,
         'summary': summary,
         'man_of_match': manOfMatch,
         'man_of_match_name': manOfMatchName,
         'scorecard_photo': scorecardPhoto,
         'players': players?.map((x) => x.toJson()).toList(),
       };
+
+  int get anandaTotalExtras {
+    int playerExtras = 0;
+    if (players != null) {
+      for (var player in players!) {
+        playerExtras += (player.wides ?? 0) + (player.noBalls ?? 0);
+      }
+    }
+    return anandaExtrasByes + anandaExtrasLegByes + playerExtras;
+  }
+
+  int get opponentTotalExtras {
+    int playerExtras = 0;
+    if (players != null) {
+      for (var player in players!) {
+        playerExtras += (player.wides ?? 0) + (player.noBalls ?? 0);
+      }
+    }
+    return opponentExtrasByes + opponentExtrasLegByes + playerExtras;
+  }
+
+  bool get isTestMatch => matchFormat == 'TEST';
 }
 
 class MatchPlayer {
@@ -103,6 +145,9 @@ class MatchPlayer {
   final double oversBowled;
   final int runsConceded;
   final int wicketsTaken;
+  final int? wides;
+  final int? noBalls;
+  final int? maidens;
   final int catches;
   final int stumpings;
   final int runouts;
@@ -124,6 +169,9 @@ class MatchPlayer {
     required this.oversBowled,
     required this.runsConceded,
     required this.wicketsTaken,
+    this.wides = 0,
+    this.noBalls = 0,
+    this.maidens = 0,
     required this.catches,
     required this.stumpings,
     required this.runouts,
@@ -147,6 +195,9 @@ class MatchPlayer {
       oversBowled: (json['overs_bowled'] ?? 0).toDouble(),
       runsConceded: json['runs_conceded'] ?? 0,
       wicketsTaken: json['wickets_taken'] ?? 0,
+      wides: json['wides'] ?? json['wide_balls'] ?? 0,
+      noBalls: json['no_balls'] ?? 0,
+      maidens: json['maidens'] ?? 0,
       catches: json['catches'] ?? 0,
       stumpings: json['stumpings'] ?? 0,
       runouts: json['runouts'] ?? 0,
@@ -172,6 +223,9 @@ class MatchPlayer {
         'overs_bowled': oversBowled,
         'runs_conceded': runsConceded,
         'wickets_taken': wicketsTaken,
+        'wides': wides,
+        'no_balls': noBalls,
+        'maidens': maidens,
         'catches': catches,
         'stumpings': stumpings,
         'runouts': runouts,

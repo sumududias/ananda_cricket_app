@@ -122,21 +122,10 @@ class _MatchDetailsScreenState extends State<MatchDetailsScreen> {
             if (_match.venue != null) _buildInfoRow('Venue', _match.venue!),
             if (_match.matchType != null)
               _buildInfoRow('Match Type', _match.matchType!),
+            if (_match.matchFormat != null)
+              _buildInfoRow('Format', _match.matchFormat!),
             if (_match.tournament != null)
-              _buildInfoRow('Tournament',
-                  _match.tournamentName ?? _match.tournament.toString()),
-            if (_match.result != null) ...[
-              const SizedBox(height: 8),
-              _buildInfoRow('Result', _match.result!),
-              _buildInfoRow(
-                  'Ananda Score', _match.anandaScore ?? 'Not available'),
-              _buildInfoRow(
-                  'Opponent Score', _match.opponentScore ?? 'Not available'),
-            ],
-            if (_match.manOfMatch != null) ...[
-              const SizedBox(height: 8),
-              _buildInfoRow('Man of the Match', _match.manOfMatchName ?? ''),
-            ],
+              _buildInfoRow('Tournament', _match.tournamentName ?? 'Unknown'),
           ],
         ),
       ),
@@ -173,29 +162,69 @@ class _MatchDetailsScreenState extends State<MatchDetailsScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Match Result',
+              'Scorecard',
               style: Theme.of(context).textTheme.titleLarge,
             ),
             const SizedBox(height: 16),
-            if (_match.anandaScore != null)
-              _buildInfoRow('Ananda College', _match.anandaScore!),
-            if (_match.opponentScore != null)
-              _buildInfoRow(_match.opponent, _match.opponentScore!),
-            if (_match.result != null) ...[
-              const SizedBox(height: 8),
-              Text(
-                _match.result!,
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      color: _match.result!.toLowerCase().contains('won')
-                          ? Colors.green
-                          : Colors.red,
-                      fontWeight: FontWeight.bold,
-                    ),
-              ),
-            ],
+            // Ananda Score
+            _buildTeamScore(
+              'Ananda College',
+              _match.anandaScore ?? '0',
+              _match.anandaTotalExtras,
+              _match.anandaExtrasByes,
+              _match.anandaExtrasLegByes,
+              _match.players
+                      ?.where((p) => p.wides != null || p.noBalls != null)
+                      .fold<int>(
+                          0,
+                          (sum, p) =>
+                              sum + (p.wides ?? 0) + (p.noBalls ?? 0)) ??
+                  0,
+            ),
+            const SizedBox(height: 8),
+            // Opponent Score
+            _buildTeamScore(
+              _match.opponent,
+              _match.opponentScore ?? '0',
+              _match.opponentTotalExtras,
+              _match.opponentExtrasByes,
+              _match.opponentExtrasLegByes,
+              _match.players
+                      ?.where((p) => p.wides != null || p.noBalls != null)
+                      .fold<int>(
+                          0,
+                          (sum, p) =>
+                              sum + (p.wides ?? 0) + (p.noBalls ?? 0)) ??
+                  0,
+            ),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildTeamScore(String teamName, String score, int totalExtras,
+      int byes, int legByes, int widePlusNoBalls) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          teamName,
+          style: Theme.of(context).textTheme.titleMedium,
+        ),
+        const SizedBox(height: 4),
+        Text(
+          'Score: $score',
+          style: Theme.of(context).textTheme.bodyLarge,
+        ),
+        if (totalExtras > 0) ...[
+          const SizedBox(height: 4),
+          Text(
+            'Extras: $totalExtras (b $byes, lb $legByes, w+nb $widePlusNoBalls)',
+            style: Theme.of(context).textTheme.bodyMedium,
+          ),
+        ],
+      ],
     );
   }
 
@@ -278,8 +307,11 @@ class _MatchDetailsScreenState extends State<MatchDetailsScreen> {
                 columns: const [
                   DataColumn(label: Text('Bowler')),
                   DataColumn(label: Text('O'), numeric: true),
+                  DataColumn(label: Text('M'), numeric: true),
                   DataColumn(label: Text('R'), numeric: true),
                   DataColumn(label: Text('W'), numeric: true),
+                  DataColumn(label: Text('WD'), numeric: true),
+                  DataColumn(label: Text('NB'), numeric: true),
                   DataColumn(label: Text('Econ'), numeric: true),
                 ],
                 rows: bowlingPlayers.map((player) {
@@ -288,8 +320,11 @@ class _MatchDetailsScreenState extends State<MatchDetailsScreen> {
                       DataCell(
                           Text(player.playerName ?? 'Player ${player.player}')),
                       DataCell(Text(player.oversBowled.toString())),
+                      DataCell(Text((player.maidens ?? 0).toString())),
                       DataCell(Text(player.runsConceded.toString())),
                       DataCell(Text(player.wicketsTaken.toString())),
+                      DataCell(Text((player.wides ?? 0).toString())),
+                      DataCell(Text((player.noBalls ?? 0).toString())),
                       DataCell(Text(player.bowlingEconomy.toStringAsFixed(2))),
                     ],
                   );
