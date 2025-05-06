@@ -6,7 +6,8 @@ class ApiConfig {
   static const bool useProduction = true;
 
   // Production URL (PythonAnywhere URL)
-  static const String productionUrl = 'https://sumududias.pythonanywhere.com';
+  static const String productionUrl =
+      'https://anandacricket.pythonanywhere.com';
 
   // Local development URLs
   static const String currentIp = '192.168.1.28';
